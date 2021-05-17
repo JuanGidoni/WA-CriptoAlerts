@@ -44,7 +44,9 @@ let config = {}
 config.priceBalance = {
     btc: Number(process.env.BTCDIF),
     eth: Number(process.env.ETHDIF),
-    doge: Number(process.env.DOGEDIF)
+    doge: Number(process.env.DOGEDIF),
+    ada: Number(process.env.ADADIF),
+    shiba: Number(process.env.SHIBDIF)
 }
 config.prices = []
 config.messages = {}
@@ -53,19 +55,29 @@ config.messages.chatName = 'Cryptos y Clandes'
 const settingData = async () => {
     try {
         let arrayPrices = await fetchingData()
-        let prices = arrayPrices.filter(price => price.symbol === 'BTCUSDT' || price.symbol === 'DOGEUSDT' || price.symbol === 'ETHUSDT')
+        let prices = arrayPrices.filter(price => 
+            price.symbol === process.env.BTC_KEY 
+            || 
+            price.symbol === process.env.ETH_KEY 
+            || 
+            price.symbol === process.env.DOGE_KEY
+            ||
+            price.symbol === process.env.ADA_KEY
+            ||
+            price.symbol === process.env.SHIB_KEY
+        )
         return prices
     } catch (error) {
         console.log(error)
     }
 }
 
-const sendWhatsAppMessage = (name, difference, state) => {
+const sendWhatsAppMessage = (name, difference, actual, state) => {
     if (state) {
         whatsappClient.getChats().then((data) => {
             data.forEach(chat => {
                 if (chat.isGroup && chat.name === config.messages.chatName) {
-                    whatsappClient.sendMessage(chat.id._serialized, `📈 ${name}: ${difference.toFixed(2)}`).then((response) => {
+                    whatsappClient.sendMessage(chat.id._serialized, `📈 ${name}: +${difference}, Precio Actual: $${actual}`).then((response) => {
                         if (response.id.fromMe) {
                             console.log({
                                 status: 'success',
@@ -80,7 +92,7 @@ const sendWhatsAppMessage = (name, difference, state) => {
         whatsappClient.getChats().then((data) => {
             data.forEach(chat => {
                 if (chat.isGroup && chat.name === config.messages.chatName) {
-                    whatsappClient.sendMessage(chat.id._serialized, `📉 ${name} BAJANDO! $${difference.toFixed(2)}`).then((response) => {
+                    whatsappClient.sendMessage(chat.id._serialized, `📉 ${name}: -${difference}, Precio Actual: $${actual}`).then((response) => {
                         if (response.id.fromMe) {
                             console.log({
                                 status: 'success',
@@ -102,6 +114,7 @@ const checkPriceThenSendMsg = (current) => {
         ).map(
             (v) => ({
                 symbol: v.symbol,
+                actualPrice: v.price,
                 diference: element.price - v.price
             })
         )[0]
@@ -113,21 +126,33 @@ const checkPriceThenSendMsg = (current) => {
             switch (v.symbol) {
                 case process.env.BTC_KEY:
                     if (dif > config.priceBalance.btc)
-                        sendWhatsAppMessage('BITCOIN', v.diference, true)
+                        sendWhatsAppMessage('BITCOIN', v.diference, v.actualPrice, true)
                     if (config.priceBalance.btc < dif)
-                        sendWhatsAppMessage('BITCOIN', v.diference, false)
+                        sendWhatsAppMessage('BITCOIN', v.diference, v.actualPrice, false)
                     break;
                 case process.env.ETH_KEY:
                     if (dif > config.priceBalance.eth)
-                        sendWhatsAppMessage('ETHEREUM', v.diference, true)
+                        sendWhatsAppMessage('ETHEREUM', v.diference, v.actualPrice, true)
                     if (config.priceBalance.eth < dif)
-                        sendWhatsAppMessage('ETHEREUM', v.diference, false)
+                        sendWhatsAppMessage('ETHEREUM', v.diference, v.actualPrice, false)
                     break;
                 case process.env.DOGE_KEY:
                     if (dif > config.priceBalance.doge)
-                        sendWhatsAppMessage('DOGECOIN', v.diference, true)
+                        sendWhatsAppMessage('DOGECOIN', v.diference, v.actualPrice, true)
                     if (config.priceBalance.doge < dif)
-                        sendWhatsAppMessage('DOGECOIN', v.diference, false)
+                        sendWhatsAppMessage('DOGECOIN', v.diference, v.actualPrice, false)
+                    break;
+                case process.env.ADA_KEY:
+                    if (dif > config.priceBalance.ada)
+                        sendWhatsAppMessage('ADA', v.diference, v.actualPrice, true)
+                    if (config.priceBalance.ada < dif)
+                        sendWhatsAppMessage('ADA', v.diference, v.actualPrice, false)
+                    break;
+                case process.env.SHIB_KEY:
+                    if (dif > config.priceBalance.shiba)
+                        sendWhatsAppMessage('SHIBA', v.diference, v.actualPrice, true)
+                    if (config.priceBalance.shiba < dif)
+                        sendWhatsAppMessage('SHIBA', v.diference, v.actualPrice, false)
                     break;
                 default:
                     break;
