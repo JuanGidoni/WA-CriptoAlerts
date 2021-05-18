@@ -10,8 +10,11 @@ const {
 const {
     fetchingData
 } = require('./api')
+const {
+    formatedDate
+} = require('./utils/date')
 
-const env = require('dotenv')
+const env = require('dotenv');
 env.config()
 
 let sessionData;
@@ -48,37 +51,70 @@ config.priceBalance = {
     ada: Number(process.env.ADADIF),
     shiba: Number(process.env.SHIBDIF)
 }
-config.prices = []
+config.prices = {
+    olds: [],
+    currents: []
+}
 config.messages = {}
+config.reCheck = false
 config.differences = {}
 config.messages.chatName = 'Cryptos y Clandes'
+config.dates = {
+    initBot: formatedDate(),
+    oldCheck: '',
+    lastCheck: ''
+}
 
 const settingData = async () => {
     try {
         let arrayPrices = await fetchingData()
-        let prices = arrayPrices.filter(price => 
-            price.symbol === process.env.BTC_KEY 
-            || 
-            price.symbol === process.env.ETH_KEY 
-            || 
-            price.symbol === process.env.DOGE_KEY
-            ||
-            price.symbol === process.env.ADA_KEY
-            ||
+        let prices = arrayPrices.filter(price =>
+            price.symbol === process.env.BTC_KEY ||
+            price.symbol === process.env.ETH_KEY ||
+            price.symbol === process.env.DOGE_KEY ||
+            price.symbol === process.env.ADA_KEY ||
             price.symbol === process.env.SHIB_KEY
         )
+        config.prices.currents = prices
         return prices
     } catch (error) {
         console.log(error)
     }
 }
+const reCheck = (difference) => {
+    try {
+        if (difference < 0 && difference <= -Math.abs(config.priceBalance.btc)) config.reCheck = true
+        if (difference < 0 && difference <= -Math.abs(config.priceBalance.eth)) config.reCheck = true
+        if (difference < 0 && difference <= -Math.abs(config.priceBalance.doge)) config.reCheck = true
+        if (difference < 0 && difference <= -Math.abs(config.priceBalance.ada)) config.reCheck = true
+        if (difference < 0 && difference <= -Math.abs(config.priceBalance.shiba)) config.reCheck = true
 
+        if (difference >= config.priceBalance.btc) config.reCheck = true
+        if (difference >= config.priceBalance.eth) config.reCheck = true
+        if (difference >= config.priceBalance.doge) config.reCheck = true
+        if (difference >= config.priceBalance.ada) config.reCheck = true
+        if (difference >= config.priceBalance.shiba) config.reCheck = true
+
+        if (config.reCheck) settingData().then(
+            (data) => {
+                config.dates.oldCheck = formatedDate()
+                config.prices.olds = data
+            }
+        ).catch(err => console.log(err))
+        else config.reCheck = false
+    } catch (error) {
+        console.log(error)
+    }
+}
 const sendWhatsAppMessage = (name, difference, actual, state) => {
+
+    reCheck(difference)
+
     if (state) {
         whatsappClient.getChats().then((data) => {
             data.forEach(chat => {
                 if (chat.isGroup && chat.name === config.messages.chatName) {
-                    whatsappClient.sendMessage(chat.id._serialized, `📈 ${name}: +${difference}`).then((response) => {
+                    whatsappClient.sendMessage(chat.id._serialized, `📈 ${name}: +${difference}. Desde: ${config.dates.oldCheck} a ${config.dates.lastCheck}`).then((response) => {
                         if (response.id.fromMe) {
                             console.log({
                                 status: 'success',
@@ -93,7 +129,7 @@ const sendWhatsAppMessage = (name, difference, actual, state) => {
         whatsappClient.getChats().then((data) => {
             data.forEach(chat => {
                 if (chat.isGroup && chat.name === config.messages.chatName) {
-                    whatsappClient.sendMessage(chat.id._serialized, `📉 ${name}: -${difference}`).then((response) => {
+                    whatsappClient.sendMessage(chat.id._serialized, `📉 ${name}: -${difference}. Desde: ${config.dates.oldCheck} a ${config.dates.lastCheck}`).then((response) => {
                         if (response.id.fromMe) {
                             console.log({
                                 status: 'success',
@@ -105,12 +141,13 @@ const sendWhatsAppMessage = (name, difference, actual, state) => {
             });
         });
     }
+
 }
 
 const checkPriceThenSendMsg = (current) => {
-
+    config.reCheck = false
     let diffPrices = current.map(
-        (element) => config.prices.filter(
+        (element) => config.prices.olds.filter(
             e => e.symbol === element.symbol
         ).map(
             (v) => ({
@@ -161,8 +198,6 @@ const checkPriceThenSendMsg = (current) => {
                     else if (config.priceBalance.shiba < dif)
                         sendWhatsAppMessage('SHIBA', dif, v.actualPrice, true)
                     break;
-                default:
-                    break;
             }
         }
     )
@@ -172,22 +207,30 @@ const checkPriceThenSendMsg = (current) => {
 whatsappClient.on('ready', () => {
     console.log('WhatsApp: Client is Ready!');
     setInterval(() => {
-        console.log(config)
+        console.log(['////////////////////////'])
+        console.log(['Dates'])
+        console.log(config.dates)
+        console.log(`From: ${config.dates.oldCheck ? config.dates.oldCheck : 'none'} to ${config.dates.lastCheck ? config.dates.lastCheck : 'none'}`)
+        console.log(['Configuration'])
+        console.log(config.priceBalance)
+        console.log(config.reCheck)
+        console.log(['Prices'])
+        console.log(config.prices.olds)
+        console.log(config.prices.currents)
+        console.log(['Differences'])
+        console.log(config.differences)
+        console.log(['Chat Name'])
+        console.log(config.messages.chatName)
+        console.log(['////////////////////////'])
+
         settingData().then(
             (data) => {
-                config.prices = config.prices.length === 0 ? data : config.prices
+                config.dates.lastCheck = formatedDate()
+                config.prices.olds = config.prices.olds.length === 0 ? data : config.prices.olds
                 checkPriceThenSendMsg(data)
             }
         ).catch(err => console.log(err))
-    }, 10500);
-    setInterval(() => {
-        console.log(config)
-        settingData().then(
-            (data) => {
-                config.prices = data 
-            }
-        ).catch(err => console.log(err))
-    }, 900000);
+    }, 30000);
 });
 
 whatsappClient.initialize();
