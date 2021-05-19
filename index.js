@@ -1,18 +1,25 @@
 const {
     Client
 } = require('whatsapp-web.js');
+
 const qrcode = require('qrcode-terminal');
 const fs = require('fs');
 
 const {
     setInterval
 } = require('timers');
+
 const {
     fetchingData
 } = require('./api')
+
 const {
     formatedDate
 } = require('./utils/date')
+
+const {
+    logs
+} = require('./utils/logs')
 
 const env = require('dotenv');
 env.config()
@@ -61,7 +68,7 @@ config.differences = {}
 config.messages.chatName = 'Cryptos y Clandes'
 config.dates = {
     initBot: formatedDate(),
-    oldCheck: '',
+    oldCheck: formatedDate(),
     lastCheck: ''
 }
 
@@ -106,7 +113,7 @@ const reCheck = (difference) => {
         console.log(error)
     }
 }
-const sendWhatsAppMessage = (name, difference, actual, state) => {
+const sendWhatsAppMessage = (name, difference, actual, old, state) => {
 
     reCheck(difference)
 
@@ -114,7 +121,7 @@ const sendWhatsAppMessage = (name, difference, actual, state) => {
         whatsappClient.getChats().then((data) => {
             data.forEach(chat => {
                 if (chat.isGroup && chat.name === config.messages.chatName) {
-                    whatsappClient.sendMessage(chat.id._serialized, `📈 ${name}: +${difference}. Desde: ${config.dates.oldCheck} a ${config.dates.lastCheck}`).then((response) => {
+                    whatsappClient.sendMessage(chat.id._serialized, `📈 ${name}: +${difference} U$D. ${config.dates.oldCheck} ($${old}) a ${config.dates.lastCheck} ($${actual})`).then((response) => {
                         if (response.id.fromMe) {
                             console.log({
                                 status: 'success',
@@ -129,7 +136,7 @@ const sendWhatsAppMessage = (name, difference, actual, state) => {
         whatsappClient.getChats().then((data) => {
             data.forEach(chat => {
                 if (chat.isGroup && chat.name === config.messages.chatName) {
-                    whatsappClient.sendMessage(chat.id._serialized, `📉 ${name}: -${difference}. Desde: ${config.dates.oldCheck} a ${config.dates.lastCheck}`).then((response) => {
+                    whatsappClient.sendMessage(chat.id._serialized, `📉 ${name}: ${difference} U$D. ${config.dates.oldCheck} ($${old}) a ${config.dates.lastCheck} ($${actual})`).then((response) => {
                         if (response.id.fromMe) {
                             console.log({
                                 status: 'success',
@@ -152,7 +159,8 @@ const checkPriceThenSendMsg = (current) => {
         ).map(
             (v) => ({
                 symbol: v.symbol,
-                actualPrice: v.price,
+                actualPrice: element.price,
+                oldPrice: v.price,
                 diference: element.price - v.price
             })
         )[0]
@@ -166,37 +174,37 @@ const checkPriceThenSendMsg = (current) => {
                 case process.env.BTC_KEY:
                     config.differences.btc = dif
                     if (dif < 0 && dif <= -Math.abs(config.priceBalance.btc))
-                        sendWhatsAppMessage('BITCOIN', dif, v.actualPrice, false)
+                        sendWhatsAppMessage('BITCOIN', dif, v.actualPrice, v.oldPrice, false)
                     else if (dif > config.priceBalance.btc)
-                        sendWhatsAppMessage('BITCOIN', dif, v.actualPrice, true)
+                        sendWhatsAppMessage('BITCOIN', dif, v.actualPrice, v.oldPrice, true)
                     break;
                 case process.env.ETH_KEY:
                     config.differences.eth = dif
                     if (dif < 0 && dif <= -Math.abs(config.priceBalance.eth))
-                        sendWhatsAppMessage('ETHEREUM', dif, v.actualPrice, false)
+                        sendWhatsAppMessage('ETHEREUM', dif, v.actualPrice, v.oldPrice, false)
                     else if (config.priceBalance.eth < dif)
-                        sendWhatsAppMessage('ETHEREUM', dif, v.actualPrice, true)
+                        sendWhatsAppMessage('ETHEREUM', dif, v.actualPrice, v.oldPrice, true)
                     break;
                 case process.env.DOGE_KEY:
                     config.differences.doge = dif
                     if (dif < 0 && dif <= -Math.abs(config.priceBalance.doge))
-                        sendWhatsAppMessage('DOGECOIN', dif, v.actualPrice, false)
+                        sendWhatsAppMessage('DOGECOIN', dif, v.actualPrice, v.oldPrice, false)
                     else if (config.priceBalance.doge < dif)
-                        sendWhatsAppMessage('DOGECOIN', dif, v.actualPrice, true)
+                        sendWhatsAppMessage('DOGECOIN', dif, v.actualPrice, v.oldPrice, true)
                     break;
                 case process.env.ADA_KEY:
                     config.differences.ada = dif
                     if (dif < 0 && dif <= -Math.abs(config.priceBalance.ada))
-                        sendWhatsAppMessage('ADA', dif, v.actualPrice, false)
+                        sendWhatsAppMessage('ADA', dif, v.actualPrice, v.oldPrice, false)
                     else if (config.priceBalance.ada < dif)
-                        sendWhatsAppMessage('ADA', dif, v.actualPrice, true)
+                        sendWhatsAppMessage('ADA', dif, v.actualPrice, v.oldPrice, true)
                     break;
                 case process.env.SHIB_KEY:
                     config.differences.shiba = dif
                     if (dif < 0 && dif <= -Math.abs(config.priceBalance.shiba))
-                        sendWhatsAppMessage('SHIBA', dif, v.actualPrice, false)
+                        sendWhatsAppMessage('SHIBA', dif, v.actualPrice, v.oldPrice, false)
                     else if (config.priceBalance.shiba < dif)
-                        sendWhatsAppMessage('SHIBA', dif, v.actualPrice, true)
+                        sendWhatsAppMessage('SHIBA', dif, v.actualPrice, v.oldPrice, true)
                     break;
             }
         }
@@ -207,22 +215,7 @@ const checkPriceThenSendMsg = (current) => {
 whatsappClient.on('ready', () => {
     console.log('WhatsApp: Client is Ready!');
     setInterval(() => {
-        console.log(['////////////////////////'])
-        console.log(['Dates'])
-        console.log(config.dates)
-        console.log(`From: ${config.dates.oldCheck ? config.dates.oldCheck : 'none'} to ${config.dates.lastCheck ? config.dates.lastCheck : 'none'}`)
-        console.log(['Configuration'])
-        console.log(config.priceBalance)
-        console.log(config.reCheck)
-        console.log(['Prices'])
-        console.log(config.prices.olds)
-        console.log(config.prices.currents)
-        console.log(['Differences'])
-        console.log(config.differences)
-        console.log(['Chat Name'])
-        console.log(config.messages.chatName)
-        console.log(['////////////////////////'])
-
+        logs(config)
         settingData().then(
             (data) => {
                 config.dates.lastCheck = formatedDate()
