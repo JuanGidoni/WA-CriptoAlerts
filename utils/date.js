@@ -1,12 +1,12 @@
 const formatedDate = () => {
+
  function getFormattedDate(today) {
-  // var week = new Array('Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado');
-  // var day = week[today.getDay()];
-  var dd = today.getDate();
-  var mm = today.getMonth() + 1; //January is 0!
-  var yyyy = today.getFullYear();
-  var hour = today.getHours();
-  var minu = today.getMinutes();
+
+  var dd = today.getDate()
+  var mm = today.getMonth() + 1
+  var yyyy = today.getFullYear()
+  var hour = today.getHours()
+  var minu = today.getMinutes()
 
   if (dd < 10) {
    dd = '0' + dd
@@ -24,6 +24,7 @@ const formatedDate = () => {
  var date = new Date();
  return getFormattedDate(date);
 }
-exports = {
- formatedDate()
+
+module.exports = {
+ formatedDate
 }

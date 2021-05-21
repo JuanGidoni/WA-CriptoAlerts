@@ -16,6 +16,6 @@ const logs = (config) => {
  console.log(['////////////////////////'])
 }
 
-exports = {
+module.exports = {
  logs
 }

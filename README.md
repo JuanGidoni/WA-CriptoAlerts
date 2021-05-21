@@ -18,3 +18,17 @@ Whatsapp Bot to alert if criptocurrencies are going UP/DOWN in higher numbers.
   }
 }
 ```
+#### How to use?
+
+Configuration file on utils/config.js\
+
+ - Change timer, priceBalance (what price you want to set limit to alert you) and the chat name of your whatsapp group.
+
+#### What you can do with this project? 
+
+- Check every time you want the prices of Bitcoin, Ethereum, Dogecoin, Cardano y Shiba Inu cryptocurrencies. 
+- Alerts you when the prices goes up/down X price. 
+
+#### Made with Javascript.
+
+##### by [/JuanGidoni](https://www.linkedin.com/in/juangidoni/)
