@@ -1,6 +1,9 @@
 const {
  settingData
 } = require('../actions/settingdata')
+const {
+ formatedDate
+} = require('./date')
 
 const reCheck = (difference, config) => {
  try {
@@ -16,13 +19,14 @@ const reCheck = (difference, config) => {
   if (difference >= config.priceBalance.ada) config.reCheck = true
   if (difference >= config.priceBalance.shiba) config.reCheck = true
 
-  if (config.reCheck) settingData().then(
+  if (config.reCheck) settingData(config).then(
    (data) => {
     config.dates.oldCheck = formatedDate()
     config.prices.olds = data
    }
   ).catch(err => console.log(err))
   else config.reCheck = false
+  
  } catch (error) {
   console.log(error)
  }

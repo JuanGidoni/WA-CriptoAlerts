@@ -9,48 +9,48 @@ const checkPriceThenSendMsg = (current, config) => {
     symbol: v.symbol,
     actualPrice: element.price,
     oldPrice: v.price,
-    diference: element.price - v.price
+    difference: Number(parseFloat(element.price - v.price))
    })
   )[0]
  )
 
  diffPrices.map(
   (v) => {
-   let dif = Number(parseFloat(v.diference).toFixed(5))
+    let dif = v.difference
    if (v.symbol === process.env.BTC_KEY) {
     config.differences.btc = dif
     if (dif < 0 && dif <= -Math.abs(config.priceBalance.btc))
-     sendWhatsAppMessage('BITCOIN', dif, v.actualPrice, v.oldPrice, false)
+     sendWhatsAppMessage('BITCOIN', v, false, config)
     else if (dif > config.priceBalance.btc)
-     sendWhatsAppMessage('BITCOIN', dif, v.actualPrice, v.oldPrice, true)
+     sendWhatsAppMessage('BITCOIN', v, true, config)
    }
    if (v.symbol === process.env.ETH_KEY) {
     config.differences.eth = dif
     if (dif < 0 && dif <= -Math.abs(config.priceBalance.eth))
-     sendWhatsAppMessage('ETHEREUM', dif, v.actualPrice, v.oldPrice, false)
+     sendWhatsAppMessage('ETHEREUM', v, false, config)
     else if (config.priceBalance.eth < dif)
-     sendWhatsAppMessage('ETHEREUM', dif, v.actualPrice, v.oldPrice, true)
+     sendWhatsAppMessage('ETHEREUM', v, true, config)
    }
    if (v.symbol === process.env.DOGE_KEY) {
     config.differences.doge = dif
     if (dif < 0 && dif <= -Math.abs(config.priceBalance.doge))
-     sendWhatsAppMessage('DOGECOIN', dif, v.actualPrice, v.oldPrice, false)
+     sendWhatsAppMessage('DOGECOIN', v, false, config)
     else if (config.priceBalance.doge < dif)
-     sendWhatsAppMessage('DOGECOIN', dif, v.actualPrice, v.oldPrice, true)
+     sendWhatsAppMessage('DOGECOIN', v, true, config)
    }
    if (v.symbol === process.env.ADA_KEY) {
     config.differences.ada = dif
     if (dif < 0 && dif <= -Math.abs(config.priceBalance.ada))
-     sendWhatsAppMessage('ADA', dif, v.actualPrice, v.oldPrice, false)
+     sendWhatsAppMessage('ADA', dif, v, false, config)
     else if (config.priceBalance.ada < dif)
-     sendWhatsAppMessage('ADA', dif, v.actualPrice, v.oldPrice, true)
+     sendWhatsAppMessage('ADA', dif, v, true, config)
    }
    if (v.symbol === process.env.SHIB_KEY) {
     config.differences.shiba = dif
     if (dif < 0 && dif <= -Math.abs(config.priceBalance.shiba))
-     sendWhatsAppMessage('SHIBA', dif, v.actualPrice, v.oldPrice, false)
+     sendWhatsAppMessage('SHIBA', dif, v, false, config)
     else if (config.priceBalance.shiba < dif)
-     sendWhatsAppMessage('SHIBA', dif, v.actualPrice, v.oldPrice, true)
+     sendWhatsAppMessage('SHIBA', dif, v, true, config)
    }
 
   }
