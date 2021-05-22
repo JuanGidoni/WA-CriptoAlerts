@@ -5,15 +5,20 @@ const {
  reCheck
 } = require('../utils/recheck')
 
+const {
+ calculate
+} = require('../utils/percentage')
+
 const sendWhatsAppMessage = (name, _data, state, config) => {
 
  reCheck(_data.difference, config)
-
- if (state) {
+ let porcentage
+ if(!state && _data.oldPrice > _data.actualPrice){
+  porcentage = calculate(_data.oldPrice, _data.actualPrice)
   whatsappClient.getChats().then((data) => {
    data.forEach(chat => {
     if (chat.isGroup && chat.name === config.messages.chatName) {
-     whatsappClient.sendMessage(chat.id._serialized, `📈 ${name}: +${_data.difference} U$D. ${config.dates.oldCheck} ($${_data.oldPrice}) a ${config.dates.lastCheck} ($${_data.actualPrice})`).then((response) => {
+     whatsappClient.sendMessage(chat.id._serialized, `📉 ${name}: Bajo un ${porcentage}%. Precio actual: ${parseInt(_data.actualPrice)}`).then((response) => {
       if (response.id.fromMe) {
        console.log({
         status: 'success',
@@ -24,11 +29,12 @@ const sendWhatsAppMessage = (name, _data, state, config) => {
     }
    });
   });
- } else {
+ }else{
+  porcentage = calculate(_data.actualPrice, _data.oldPrice)
   whatsappClient.getChats().then((data) => {
    data.forEach(chat => {
     if (chat.isGroup && chat.name === config.messages.chatName) {
-     whatsappClient.sendMessage(chat.id._serialized, `📉 ${name}: ${_data.difference} U$D. ${config.dates.oldCheck} ($${_data.oldPrice}) a ${config.dates.lastCheck} ($${_data.actualPrice})`).then((response) => {
+     whatsappClient.sendMessage(chat.id._serialized, `📈 ${name}: Subio un ${porcentage}%. Precio actual: ${parseInt(_data.actualPrice)}`).then((response) => {
       if (response.id.fromMe) {
        console.log({
         status: 'success',
@@ -40,6 +46,7 @@ const sendWhatsAppMessage = (name, _data, state, config) => {
    });
   });
  }
+ console.log(porcentage)
 
 }
 

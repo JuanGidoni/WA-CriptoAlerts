@@ -6,7 +6,7 @@ const env = require('dotenv');
 env.config()
 
 let config = {
- timer: 15000,
+ timer: 3000,
  keys: {
   btc: process.env.BTC_KEY,
   eth: process.env.ETH_KEY,
