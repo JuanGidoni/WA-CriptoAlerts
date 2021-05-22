@@ -13,7 +13,7 @@ const sendWhatsAppMessage = (name, _data, state, config) => {
   whatsappClient.getChats().then((data) => {
    data.forEach(chat => {
     if (chat.isGroup && chat.name === config.messages.chatName) {
-     whatsappClient.sendMessage(chat.id._serialized, `📈 ${name}: +${_data.difference} U$D. ${config.dates.oldCheck} ($${_data.old}) a ${config.dates.lastCheck} ($${_data.actual})`).then((response) => {
+     whatsappClient.sendMessage(chat.id._serialized, `📈 ${name}: +${_data.difference} U$D. ${config.dates.oldCheck} ($${_data.oldPrice}) a ${config.dates.lastCheck} ($${_data.actualPrice})`).then((response) => {
       if (response.id.fromMe) {
        console.log({
         status: 'success',
@@ -28,7 +28,7 @@ const sendWhatsAppMessage = (name, _data, state, config) => {
   whatsappClient.getChats().then((data) => {
    data.forEach(chat => {
     if (chat.isGroup && chat.name === config.messages.chatName) {
-     whatsappClient.sendMessage(chat.id._serialized, `📉 ${name}: ${_data.difference} U$D. ${config.dates.oldCheck} ($${_data.old}) a ${config.dates.lastCheck} ($${_data.actual})`).then((response) => {
+     whatsappClient.sendMessage(chat.id._serialized, `📉 ${name}: ${_data.difference} U$D. ${config.dates.oldCheck} ($${_data.oldPrice}) a ${config.dates.lastCheck} ($${_data.actualPrice})`).then((response) => {
       if (response.id.fromMe) {
        console.log({
         status: 'success',
