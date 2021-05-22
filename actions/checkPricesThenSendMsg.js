@@ -1,3 +1,4 @@
+const { sendWhatsAppMessage } = require('./sendWhatsAppMessage')
 const checkPriceThenSendMsg = (current, config) => {
  config.reCheck = false
  let diffPrices = current.map(
@@ -16,8 +17,6 @@ const checkPriceThenSendMsg = (current, config) => {
  diffPrices.map(
   (v) => {
    let dif = Number(parseFloat(v.diference).toFixed(5))
-   let checker = Math.sign(dif)
-
    if (v.symbol === process.env.BTC_KEY) {
     config.differences.btc = dif
     if (dif < 0 && dif <= -Math.abs(config.priceBalance.btc))
